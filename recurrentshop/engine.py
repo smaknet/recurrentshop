@@ -1,7 +1,6 @@
 from keras.layers import Layer, InputSpec
 from keras.models import Sequential
-from keras import initializations, regularizers, constraints
-from keras.utils.layer_utils import layer_from_config
+from keras import initializers, regularizers, constraints
 from keras import backend as K
 from inspect import getargspec
 import numpy as np
@@ -79,7 +78,7 @@ class weight(object):
 			value = (value,)
 		if type(value) in [tuple, list]:
 			if type(init) == str:
-				init = initializations.get(init)
+				init = initializers.get(init)
 			self.value = init(value, name=name)
 		elif 'numpy' in str(type(value)):
 			self.value = K.variable(value, name=name)
@@ -492,20 +491,6 @@ class RecurrentContainer(Layer):
 		config['model'] = self.model.get_config()
 		base_config = super(RecurrentContainer, self).get_config()
 		return dict(list(base_config.items()) + list(config.items()))
-
-	@classmethod
-	def from_config(cls, config):
-		model_config = config['model']
-		del config['model']
-		rc = cls(**config)
-		from . import cells
-		rc.model = Sequential()
-		for layer_config in model_config:
-			if 'config' in layer_config and 'name' in layer_config['config']:
-				del layer_config['config']['name']
-			layer = layer_from_config(layer_config, cells.__dict__)
-			rc.add(layer)
-		return rc
 
 	def __call__(self, x, mask=None):
 		args = ['input', 'ground_truth', 'initial_readout', 'states']
